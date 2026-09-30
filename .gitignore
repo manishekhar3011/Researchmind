@@ -1,0 +1,26 @@
+# Env files
+.env
+**/.env
+!**/.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Java
+target/
+*.class
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/settings.json
+.idea/

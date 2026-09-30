@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:researchmind}
+    username: ${DB_USER:researchmind}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000 # 24h
+  ai-service:
+    base-url: ${AI_SERVICE_URL:http://localhost:8001}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

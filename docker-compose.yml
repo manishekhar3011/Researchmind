@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: researchmind-postgres
+    environment:
+      POSTGRES_DB: researchmind
+      POSTGRES_USER: researchmind
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U researchmind"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: researchmind-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  ai-service:
+    build: ./ai-service
+    container_name: researchmind-ai-service
+    ports:
+      - "8001:8001"
+    environment:
+      LLM_MODEL: llama3.2:3b
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      QDRANT_COLLECTION: researchmind_chunks
+      EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+      TOP_K_VECTOR: 20
+      TOP_K_BM25: 20
+      TOP_K_FINAL: 5
+      MIN_RERANK_SCORE: 0.15
+      AI_SERVICE_PORT: 8001
+    depends_on:
+      - qdrant
+
+  backend:
+    build: ./backend
+    container_name: researchmind-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: researchmind
+      DB_USER: researchmind
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      AI_SERVICE_URL: http://ai-service:8001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    container_name: researchmind-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  qdrant_data:
+
+
+
+
+
+
+
+
+
