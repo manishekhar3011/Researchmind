@@ -37,8 +37,8 @@ services:
       QDRANT_PORT: 6333
       QDRANT_COLLECTION: researchmind_chunks
       EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
-      TOP_K_VECTOR: 20
-      TOP_K_BM25: 20
+      TOP_K_VECTOR: 10
+      TOP_K_BM25: 10
       TOP_K_FINAL: 5
       MIN_RERANK_SCORE: 0.15
       AI_SERVICE_PORT: 8001
@@ -77,6 +77,7 @@ services:
 volumes:
   postgres_data:
   qdrant_data:
+
 
 
 

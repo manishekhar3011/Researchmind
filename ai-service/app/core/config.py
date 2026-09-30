@@ -11,8 +11,9 @@ class Settings(BaseSettings):
 
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    top_k_vector: int = 20
-    top_k_bm25: int = 20
+    # Performance-optimized retrieval
+    top_k_vector: int = 10
+    top_k_bm25: int = 10
     top_k_final: int = 5
     min_rerank_score: float = 0.15
 

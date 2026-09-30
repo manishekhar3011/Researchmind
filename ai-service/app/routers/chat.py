@@ -6,27 +6,16 @@ from app.core.llm import generate_answer
 from app.core.retrieval import hybrid_retrieve
 from app.models.schemas import ChatRequest, ChatResponse
 
-
-router = APIRouter(
-    prefix="/internal",
-    tags=["chat"]
-)
+router = APIRouter(prefix="/internal", tags=["chat"])
 
 
 @router.post("/retrieve")
 async def retrieve_only(request: ChatRequest):
-
-    total_start = time.perf_counter()
-
-    retrieval_start = time.perf_counter()
+    """Exposed separately so the evaluation harness can score retrieval alone."""
 
     chunks = hybrid_retrieve(
         request.query,
-        request.document_ids
-    )
-
-    retrieval_ms = int(
-        (time.perf_counter() - retrieval_start) * 1000
+        request.document_ids,
     )
 
     return {
@@ -42,79 +31,34 @@ async def retrieve_only(request: ChatRequest):
                 "rerank_score": c.rerank_score,
             }
             for c in chunks
-        ],
-        "timing": {
-            "retrieval_ms": retrieval_ms,
-            "total_ms": int(
-                (time.perf_counter() - total_start) * 1000
-            ),
-        },
+        ]
     }
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
-
-    total_start = time.perf_counter()
-
-    # -----------------------------
-    # 1. RETRIEVAL TIMING
-    # -----------------------------
-
-    retrieval_start = time.perf_counter()
+    start = time.time()
 
     chunks = hybrid_retrieve(
         request.query,
-        request.document_ids
+        request.document_ids,
     )
-
-    retrieval_ms = int(
-        (time.perf_counter() - retrieval_start) * 1000
-    )
-
-    # -----------------------------
-    # 2. LLM ANSWER TIMING
-    # -----------------------------
-
-    generation_start = time.perf_counter()
 
     result = generate_answer(
         request.query,
-        chunks
+        chunks,
     )
 
-    generation_ms = int(
-        (time.perf_counter() - generation_start) * 1000
-    )
-
-    # -----------------------------
-    # 3. TOTAL TIMING
-    # -----------------------------
-
-    total_ms = int(
-        (time.perf_counter() - total_start) * 1000
-    )
-
-    print(
-        "\n========== RESEARCHMIND TIMING =========="
-    )
-    print(
-        f"Retrieval:    {retrieval_ms} ms"
-    )
-    print(
-        f"LLM Answer:   {generation_ms} ms"
-    )
-    print(
-        f"Total:        {total_ms} ms"
-    )
-    print(
-        "==========================================\n"
+    latency_ms = int(
+        (time.time() - start) * 1000
     )
 
     return ChatResponse(
         answer=result["answer"],
         citations=result["citations"],
         grounded=result["grounded"],
+        # Fact-check is intentionally not executed on every chat request.
+        # This avoids a second LLM call and significantly reduces latency.
         faithfulness_score=None,
-        latency_ms=total_ms,
+        latency_ms=latency_ms,
     )
