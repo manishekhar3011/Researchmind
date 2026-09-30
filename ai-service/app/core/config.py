@@ -2,21 +2,32 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    llm_model: str = "llama3.2:3b"
-    ollama_base_url: str = "http://localhost:11434"
+    # LLM
+    llm_model: str = "gpt-oss:120b"
+    ollama_base_url: str = "https://ollama.com"
+    ollama_api_key: str = ""
 
+    # Qdrant Cloud
+    qdrant_url: str = ""
+    qdrant_api_key: str = ""
+
+    # Local Qdrant fallback
     qdrant_host: str = "localhost"
     qdrant_port: int = 6333
+
+    # Collection
     qdrant_collection: str = "researchmind_chunks"
 
+    # Embeddings
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
-    # Performance-optimized retrieval
+    # Retrieval
     top_k_vector: int = 10
     top_k_bm25: int = 10
     top_k_final: int = 5
     min_rerank_score: float = 0.15
 
+    # Service
     ai_service_port: int = 8001
 
     class Config:
