@@ -24,3 +24,16 @@ dist/
 # IDE
 .vscode/settings.json
 .idea/
+.env
+**/.env
+!.env.example
+.venv/
+**/.venv/
+venv/
+**/node_modules/
+__pycache__/
+**/__pycache__/
+*.pyc
+dist/
+build/
+qdrant_storage/
